@@ -60,6 +60,16 @@ function Cart() {
   )
 }
 
+function Chat(){
+  return(
+    <Link
+      to="/chat"
+      className="text-black hover:font-bold hover:text-blue-600 transition"
+    >Chat
+      </Link>
+  )
+}
+
 export default function Header() {
   const { user, setUser } = useContext(UserContext);
   const navigate = useNavigate();
@@ -90,6 +100,7 @@ export default function Header() {
           {user && (
             <>
               {/* Navbar Links */}
+              <Chat />
               <SearchLink />
               <MyItemsLink />
 
