@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+
 
 export default function RegisterPage() {
 
@@ -10,6 +12,7 @@ export default function RegisterPage() {
     const [age, setAge] = useState('')
     const [contact, setContact] = useState('')
     const [password, setPassword] = useState('')
+    const { executeRecaptcha } = useGoogleReCaptcha();
 
     async function registerUser(ev) {
         ev.preventDefault()
@@ -19,13 +22,15 @@ export default function RegisterPage() {
             return
         }
         try {
+            const recaptchaToken = await executeRecaptcha('register');
             const res = await axios.post('http://localhost:4000/register', {
                 firstname,
                 surname,
                 email,
                 age,
                 contact,
-                password
+                password,
+                recaptchaToken
             })
             console.log(res)
             alert('Registration successful, You can login now')

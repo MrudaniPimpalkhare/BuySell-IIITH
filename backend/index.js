@@ -9,6 +9,11 @@ import { authenticateToken } from './middleware/authenticateToken.js';
 import User from './models/User.js';
 import Item from './models/Item.js';
 import Order from './models/Order.js';
+import chatRoutes from './routes/chatRoutes.js';
+import xml2js from 'xml2js';
+import { casCallback } from './controllers/casController.js';
+import { verifyRecaptcha } from './middleware/verifyRecaptcha.js';
+
 
 dotenv.config();
 const app = express();
@@ -17,6 +22,7 @@ const bcryptSalt = bcrypt.genSaltSync(10);
 app.use(express.json());
 app.use(cors({ origin: process.env.FRONTEND, credentials: true }));
 app.use(cookieParser());
+app.use(chatRoutes);
 
 mongoose.connect(process.env.MONGO_URL)
     .then(() => console.log('MongoDB Connected'))
@@ -26,7 +32,37 @@ app.get("/test", (req, res) => {
     res.send("Hello World!");
 });
 
-app.post('/login', async (req, res) => {
+app.get('/api/cas/callback', casCallback);
+
+
+app.post('/complete-registration', authenticateToken, async (req, res) => {
+    const { firstname, surname, age, contact, password } = req.body;
+
+    if (!firstname || !surname || !age || !contact || !password) {
+        return res.status(400).send('Missing fields');
+    }
+
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(400).send('User not found');
+        }
+
+        user.firstname = firstname;
+        user.surname = surname;
+        user.age = age;
+        user.contact = contact;
+        user.password = await bcrypt.hash(password, bcryptSalt);
+
+        await user.save();
+        res.json({ success: true, message: 'Registration completed successfully' });
+    } catch (error) {
+        console.error('Error completing registration:', error);
+        res.status(500).json({ success: false, message: 'Failed to complete registration' });
+    }
+});
+
+app.post('/login', verifyRecaptcha, async (req, res) => {
     const { email, password } = req.body;
     console.log(req.body);
 
@@ -55,7 +91,7 @@ app.post('/login', async (req, res) => {
 
 });
 
-app.post('/register', async (req, res) => {
+app.post('/register', verifyRecaptcha,async (req, res) => {
     console.log(req.body);
     const { firstname, surname, email, age, contact, password } = req.body;
 
@@ -408,6 +444,7 @@ app.post('/order', authenticateToken, async (req, res) => {
 app.get('/orders/pending', authenticateToken, async (req, res) => {
     try {
         const orders = await Order.find({ buyer: req.user._id, isCompleted: false }).populate('items.item').populate('items.seller');
+        // remove all orders that have no items
         res.json(orders);
     } catch (error) {
         console.error('Error fetching pending orders:', error);
@@ -438,6 +475,7 @@ app.get('/orders/sold', authenticateToken, async (req, res) => {
             return order;
         });
 
+
         res.json(filteredOrders);
     } catch (error) {
         console.error('Error fetching sold orders:', error);
@@ -460,17 +498,21 @@ app.post('/order/regenerate-otp/:orderId', authenticateToken, async (req, res) =
         for (const orderItem of order.items) {
             const item = await Item.findById(orderItem.item);
             if (!item || item.quantity < orderItem.quantity) {
+                console.log('Item not available:');
                 // remove that item from the order
                 order.items = order.items.filter(o => o.item.toString() !== item._id.toString());
-                await order.save();
-                // if the number of items in the order is now 0, delete the order
-                if (order.items.length === 0) {
-                    await Order.findByIdAndDelete(order._id)
-                    return res.json({ success: true, message: 'Order removed as all items are no longer available' });
-                }else{
-                    return res.status(400).json({ success: false, message: 'One or more items in the order are no longer available, these will be removed from the cart' });
-                }
             }
+        }
+        
+        // Save the updated order
+        await order.save();
+        
+        // if the number of items in the order is now 0, delete the order
+        if (order.items.length === 0) {
+            await Order.findByIdAndDelete(order._id);
+            return res.json({ success: false, message: 'Order removed as all items are no longer available' });
+        } else {
+            return res.status(400).json({ success: false, message: 'One or more items in the order are no longer available, these have been removed from the order' });
         }
         
 

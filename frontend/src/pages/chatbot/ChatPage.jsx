@@ -18,39 +18,26 @@ export default function ChatPage() {
   const sendMessage = async () => {
     if (!userInput.trim()) return;
 
-    // Append user message immediately
-    console.log("User:", userInput);
-    setMessages(prev => [...prev, { role: 'user', message: userInput }]);
+    // Show user message immediately
+    const newUserMessage = { role: 'user', text: userInput };
+    setMessages(prev => [...prev, newUserMessage]);
 
     try {
-      const res = await axios.post(
-        `${backendUrl}/api/chat`,
-        { sessionId, userMessage: userInput },
-        { withCredentials: true }
-      );
+        const response = await axios.post(`${backendUrl}/api/chat`, { userMessage: userInput });
+        console.log("Gemini API Response:", response.data);
 
-      console.log("API Response:", res.data.conversation);
+        const botReply = response.data?.reply || "No response from Gemini.";
+        setMessages(prev => [...prev, { role: 'assistant', text: botReply }]);
 
-      // New: extract reply from candidates if available
-      if (res.data.candidates && res.data.candidates.length > 0) {
-        const replyText =
-          res.data.candidates[0].content.parts &&
-          res.data.candidates[0].content.parts[0].text;
-        setMessages(prev => [...prev, { role: 'assistant', message: replyText }]);
-      }
-      // Fallback: if conversation array exists or reply property exists
-      else if (res.data.conversation) {
-        console.log("Conversation:", res.data.conversation);
-        setMessages(res.data.conversation);
-      } else if (res.data.reply) {
-        setMessages(prev => [...prev, { role: 'assistant', message: res.data.reply }]);
-      }
-      setUserInput('');
     } catch (error) {
-      console.error('Error sending message:', error);
-      alert('Failed to send request to Gemini.');
+        console.error("Error sending message:", error);
+        alert("Failed to send request to Gemini.");
     }
-  };
+
+    setUserInput('');
+};
+
+
 
   return (
     <div className="flex flex-col h-screen p-6 bg-gray-100">
