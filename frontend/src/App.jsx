@@ -25,6 +25,7 @@ import ItemsPage from './pages/items/ItemsPage'
 import MyCartPage from './pages/orders/MyCart'
 import CompleteRegistration from './pages/CompleteRegistration'
 import ChatPage from './pages/chatbot/ChatPage'
+import ChatbotWidget from './components/ChatBotWidget'
 
 axios.defaults.baseURL = 'http://localhost:4000'
 // allow axios to send cookies to the server
@@ -135,6 +136,7 @@ function App() {
             />
           </Route>
         </Routes>
+        <ChatbotWidget />
       </UserContextProvider>
     </>
   )

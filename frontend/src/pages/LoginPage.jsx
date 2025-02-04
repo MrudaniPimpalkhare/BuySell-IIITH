@@ -10,7 +10,6 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const { setUser } = useContext(UserContext);
-    const { executeRecaptcha } = useGoogleReCaptcha();
 
     async function handleLoginSubmit(ev) {
         ev.preventDefault();
@@ -20,18 +19,13 @@ export default function LoginPage() {
             return;
         }
 
-        if (!executeRecaptcha) {
-            alert('reCAPTCHA not yet available');
-            return;
-        }
 
         setIsLoading(true);
 
         try {
             // Execute reCAPTCHA with action 'login'
-            const recaptchaToken = await executeRecaptcha('login');
 
-            const res = await axios.post('/login', {email, password, recaptchaToken}, { withCredentials: true });
+            const res = await axios.post('/login', {email, password}, { withCredentials: true });
 
             if (res.data === 'passok') {
                 const userRes = await axios.get('/profile', { withCredentials: true });

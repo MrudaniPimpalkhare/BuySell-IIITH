@@ -5,12 +5,10 @@ import App from './App.jsx'
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3'
 
 createRoot(document.getElementById('root')).render(
-  <GoogleReCaptchaProvider>
     <StrictMode>
     <BrowserRouter>
       <App />
     </BrowserRouter>
   </StrictMode>
-  </GoogleReCaptchaProvider>
   ,
 )

@@ -12,7 +12,6 @@ import Order from './models/Order.js';
 import chatRoutes from './routes/chatRoutes.js';
 import xml2js from 'xml2js';
 import { casCallback } from './controllers/casController.js';
-import { verifyRecaptcha } from './middleware/verifyRecaptcha.js';
 
 
 dotenv.config();
@@ -62,7 +61,7 @@ app.post('/complete-registration', authenticateToken, async (req, res) => {
     }
 });
 
-app.post('/login', verifyRecaptcha, async (req, res) => {
+app.post('/login', async (req, res) => {
     const { email, password } = req.body;
     console.log(req.body);
 
@@ -91,7 +90,7 @@ app.post('/login', verifyRecaptcha, async (req, res) => {
 
 });
 
-app.post('/register', verifyRecaptcha,async (req, res) => {
+app.post('/register',async (req, res) => {
     console.log(req.body);
     const { firstname, surname, email, age, contact, password } = req.body;
 

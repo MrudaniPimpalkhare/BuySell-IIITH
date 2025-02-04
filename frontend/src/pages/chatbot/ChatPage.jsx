@@ -1,26 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
 import { FaPaperPlane } from 'react-icons/fa';
 
 export default function ChatPage() {
-  const [sessionId, setSessionId] = useState('');
   const [messages, setMessages] = useState([]);
   const [userInput, setUserInput] = useState('');
   
-  // use environment variable for backend URL if available
   const backendUrl = 'http://localhost:4000';
-
-  useEffect(() => {
-    setSessionId(uuidv4()); // Generate unique session ID
-  }, []);
 
   const sendMessage = async () => {
     if (!userInput.trim()) return;
 
-    // Show user message immediately
+    // Append user message immediately
     const newUserMessage = { role: 'user', text: userInput };
     setMessages(prev => [...prev, newUserMessage]);
+    setUserInput('');
 
     try {
         const response = await axios.post(`${backendUrl}/api/chat`, { userMessage: userInput });
@@ -33,38 +27,36 @@ export default function ChatPage() {
         console.error("Error sending message:", error);
         alert("Failed to send request to Gemini.");
     }
-
-    setUserInput('');
-};
-
-
+  };
 
   return (
-    <div className="flex flex-col h-screen p-6 bg-gray-100">
-      <h1 className="text-xl font-semibold text-center mb-4">Chat with Gemini</h1>
-
-      <div className="border p-2 h-64 overflow-y-auto">
+    <div className="flex flex-col h-full p-3 bg-gray-100">
+      {/* Chat Area */}
+      <div className="flex-1 overflow-y-auto space-y-2 px-2">
         {messages.map((m, i) => (
-          <div key={i} className={`p-2 ${m.role === 'assistant' ? 'text-blue-500' : 'text-gray-800'}`}>
-            <strong>{m.role === 'assistant' ? 'Gemini' : 'You'}:</strong> {m.text}
+          <div key={i} className={`flex ${m.role === 'assistant' ? 'justify-start' : 'justify-end'}`}>
+            <div className={`max-w-[75%] p-2 text-white rounded-lg shadow-md ${m.role === 'assistant' ? 'bg-blue-500' : 'bg-gray-800'}`}>
+              {m.text}
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-4 flex">
+      {/* Input Field */}
+      <div className="mt-3 flex items-center bg-white p-2 rounded-lg shadow">
         <input
           type="text"
-          className="flex-grow border p-2 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+          className="flex-grow p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Ask something..."
+          placeholder="Type your message..."
           onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
         />
         <button
           onClick={sendMessage}
-          className="ml-2 px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center hover:bg-blue-600"
+          className="ml-2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
         >
-          <FaPaperPlane className="mr-1" /> Send
+          <FaPaperPlane />
         </button>
       </div>
     </div>
