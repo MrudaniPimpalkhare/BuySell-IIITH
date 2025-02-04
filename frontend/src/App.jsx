@@ -111,14 +111,6 @@ function App() {
               }
             />
             <Route
-              path="/chat"
-              element={
-                <ProtectedRoute>
-                  <ChatPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/my-items"
               element={
                 <ProtectedRoute>

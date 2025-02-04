@@ -394,8 +394,21 @@ app.post('/items/:id/rate', authenticateToken, async (req, res) => {
         } else {
             item.ratings.push({ user: user._id, rating });
         }
-
         await item.save();
+        // the sellers rating is the average of all ratings of all the items sold by the seller
+        const seller = await User.findById(item.user_id);
+        const sellerItems = await Item.find({ user_id: seller._id });
+        let totalRatings = 0;    
+        let totalReviews = 0;
+        sellerItems.forEach(item => {
+            item.ratings.forEach(rating => {
+                totalRatings += rating.rating;
+                totalReviews++;
+            });
+        });
+        seller.averageRating = totalReviews === 0 ? 0 : totalRatings / totalReviews;
+        await seller.save();
+
         res.json({ success: true, message: 'Item rated successfully' });
     } catch (error) {
         console.error('Error rating item:', error);

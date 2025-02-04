@@ -74,7 +74,7 @@ export default function ProfilePage() {
                 <div className="mt-6">
                     <h3 className="text-lg font-semibold text-gray-800">Ratings</h3>
                     <p className="text-gray-600 mt-2">
-                        <strong>Rating:</strong> {user.average}
+                        <strong>Rating:</strong> {user.averageRating}
                     </p>
                 </div>
 

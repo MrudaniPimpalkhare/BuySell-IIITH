@@ -100,7 +100,6 @@ export default function Header() {
           {user && (
             <>
               {/* Navbar Links */}
-              <Chat />
               <SearchLink />
               <MyItemsLink />
 
